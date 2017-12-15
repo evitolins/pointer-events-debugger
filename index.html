@@ -118,14 +118,14 @@ pre {
     var currently_listening = [];
 
     var refresh_listeners = function (events) {
-        events = events || [];
+        events = (events[0]) ? events : listenable_events;
         currently_listening.forEach(function (value) {
             body.removeEventListener(value, listener);
             console.log('removeEventListener ' + value);
         });
         currently_listening = [];
         events.forEach(function (value) {
-            if (listenable_events.indexOf(value) < -1) {
+            if (listenable_events.indexOf(value) > -1) {
                 body.addEventListener(value, listener);
                 currently_listening.push(value);
                 console.log('addEventListener ' + value);
@@ -133,10 +133,18 @@ pre {
         });
     };
 
-    window.addEventListener('hashchange', function () {
-        var events = window.location.hash.slice(1).split(',');
+    var listener_hashchange = function () {
+        var hashstring = window.location.hash.slice(1);
+        var events = [];
+        if (hashstring) {
+            events = hashstring.split(',');
+        }
         refresh_listeners(events);
-    });    
+    };
+
+    window.addEventListener('hashchange', listener_hashchange);
+    listener_hashchange();
+  
     
 </script>
 </body>
