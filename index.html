@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>pointer-events-debugger</title>
+    <style>
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+pre {
+    pointer-events: none;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+#pressureCircle {
+  background: red;
+  border-radius: 100%;
+  width: 2px;
+  height: 2px;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+    </style>
+</head>
+<body>
+<h2>Click and drag anywhere to detect and output mouse/tablet input data.</h2>
+<p>Tip: Act like you're trying to draw on the page (however, no drawing will appear...boring, I know).</p>
+<p><em>After each 1000 actions, this page will attempt save it's results to a file.</em></p>
+<pre class="noselect"><code id="output"></code></pre>
+<div id="pressureCircle"></div>
+<script type="text/javascript" src="https://rawgit.com/lancedikson/bowser/master/src/bowser.js"></script>
+<script type="text/javascript" src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"></script>
+<script>
+    var body = document.body;
+    var output = document.getElementById('output');
+    var pressureCircle = document.getElementById('pressureCircle');
+    var data = {
+        system : {
+            os : bowser.osname,
+            osVersion : bowser.osversion,
+            browser : bowser.name,
+            browserVersion : bowser.version
+        },
+        event : null
+    };
+    var log = [];
+    log.push(data.system);
+    var save_log_to_file = function () {
+        var filename = "pointer-events-debugger-results.json";
+        var blob = new Blob([JSON.stringify(log, null, 4)], {type: "application/json;charset=utf-8"});
+        saveAs(blob, filename);
+    };
+    var listener = function (e) {
+        data.event = {
+            type : e.type,
+            pointerType : e.pointerType,
+            clientX : e.clientX,
+            clientY : e.clientY,
+            pressure : e.pressure,
+            tiltX : e.tiltX,
+            tiltY : e.tiltY,
+            twist : e.twist,
+            // bubbles : e.bubbles,
+            // cancelable : e.cancelable,
+            // detail : e.detail,
+            // width : e.width,
+            // height : e.height,
+            pointerId : e.pointerId,
+            isPrimary : e.isPrimary
+        };
+        log.push(data.event);
+        var remainder = log.length % 1000;
+        if (remainder === 0) {
+            var confirmed = confirm("Think you've tested it enough?\n\n    Yep: Click 'Ok' to save a file of your results.\n\n    Nope: Click 'Cancel' to continue testing the mouse/stylus inputs.")
+            if (confirmed === true) {
+                save_log_to_file();
+            }
+            return;
+        }
+        // Update DOM
+        var scale = e.pressure * 20;
+        pressureCircle.style.transform = "translate("+e.clientX+"px ,"+e.clientY+"px) skew("+e.tiltX+"deg, "+e.tiltY+"deg) scale("+scale+")";
+        output.innerHTML = JSON.stringify(data, null, 4);
+    };
+    if (!window.PointerEvent) alert("pointer events not detected");
+    output.innerHTML = JSON.stringify(data, null, 4);
+    body.addEventListener('pointerover', listener);
+    body.addEventListener('pointerenter', listener);
+    body.addEventListener('pointerdown', listener);
+    body.addEventListener('pointermove', listener);
+    body.addEventListener('pointerup', listener);
+    body.addEventListener('pointercancel', listener);
+    body.addEventListener('pointerout', listener);
+    body.addEventListener('pointerleave', listener);
+    body.addEventListener('gotpointercapture', listener);
+    body.addEventListener('lostpointercapture', listener);
+</script>
+</body>
+</html>
