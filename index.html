@@ -96,16 +96,48 @@ pre {
     };
     if (!window.PointerEvent) alert("pointer events not detected");
     output.innerHTML = JSON.stringify(data, null, 4);
-    body.addEventListener('pointerover', listener);
-    body.addEventListener('pointerenter', listener);
-    body.addEventListener('pointerdown', listener);
-    body.addEventListener('pointermove', listener);
-    body.addEventListener('pointerup', listener);
-    body.addEventListener('pointercancel', listener);
-    body.addEventListener('pointerout', listener);
-    body.addEventListener('pointerleave', listener);
-    body.addEventListener('gotpointercapture', listener);
-    body.addEventListener('lostpointercapture', listener);
+
+    // Logic to optionally listen to any of the events below by
+    // adding a comma-separated in the URL hash.
+    // 
+    //   e.g. .../index.html#pointerover,pointerenter,pointerdown
+    //   
+    var listenable_events = [
+        'pointerover'
+        'pointerenter'
+        'pointerdown'
+        'pointermove'
+        'pointerup'
+        'pointercancel'
+        'pointerout'
+        'pointerleave'
+        'gotpointercapture'
+        'lostpointercapture'
+    ];
+
+    var currently_listening = [];
+
+    var refresh_listeners = function (events) {
+        events = events || [];
+        currently_listening.forEach(function (value) {
+            body.removeEventListener(value, listener);
+            console.log('removeEventListener ' + value);
+        });
+        currently_listening = [];
+        events.forEach(function (value) {
+            if (listenable_events.indexOf(value) < -1) {
+                body.addEventListener(value, listener);
+                currently_listening.push(value);
+                console.log('addEventListener ' + value);
+            }
+        });
+    };
+
+    window.addEventListener('hashchange', function () {
+        var events = window.location.hash.slice(1).split(',');
+        refresh_listeners(events);
+    });    
+    
 </script>
 </body>
 </html>
