@@ -2,152 +2,24 @@
 <html>
 <head>
     <title>pointer-events-debugger</title>
-    <style>
-html, body {
-    height: 100%;
-    width: 100%;
-}
-
-pre {
-    pointer-events: none;
-}
-
-.noselect {
-  -webkit-touch-callout: none; /* iOS Safari */
-    -webkit-user-select: none; /* Safari */
-     -khtml-user-select: none; /* Konqueror HTML */
-       -moz-user-select: none; /* Firefox */
-        -ms-user-select: none; /* Internet Explorer/Edge */
-            user-select: none; /* Non-prefixed version, currently
-                                  supported by Chrome and Opera */
-}
-
-#pressureCircle {
-  background: red;
-  border-radius: 100%;
-  width: 2px;
-  height: 2px;
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-    </style>
+    <link rel="stylesheet" type="text/css" href="./normalize.css">
+    <link rel="stylesheet" type="text/css" href="./main.css">
 </head>
 <body>
-<h1>pointer-events-debugger</h1>
-<h2>Click and drag anywhere to detect and output mouse/tablet input data.</h2>
-<p>Tip: Act like you're trying to draw on the page (however, no drawing will appear...boring, I know).</p>
-<p><em>After each 1000 actions, this page will attempt save it's results to a file.</em></p>
-<pre class="noselect"><code id="output"></code></pre>
-<div id="pressureCircle"></div>
-<a href="https://github.com/evitolins/pointer-events-debugger/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a>
-<script type="text/javascript" src="https://rawgit.com/lancedikson/bowser/master/src/bowser.js"></script>
-<script type="text/javascript" src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"></script>
-<script>
-    var body = document.body;
-    var output = document.getElementById('output');
-    var pressureCircle = document.getElementById('pressureCircle');
-    var data = {
-        system : {
-            os : bowser.osname,
-            osVersion : bowser.osversion,
-            browser : bowser.name,
-            browserVersion : bowser.version
-        },
-        event : null
-    };
-    var log = [];
-    log.push(data.system);
-    var save_log_to_file = function () {
-        var filename = "pointer-events-debugger-results.json";
-        var blob = new Blob([JSON.stringify(log, null, 4)], {type: "application/json;charset=utf-8"});
-        saveAs(blob, filename);
-    };
-    var listener = function (e) {
-        data.event = {
-            type : e.type,
-            pointerType : e.pointerType,
-            button : e.button,
-            clientX : e.clientX,
-            clientY : e.clientY,
-            pressure : e.pressure,
-            tiltX : e.tiltX,
-            tiltY : e.tiltY,
-            twist : e.twist,
-            // bubbles : e.bubbles,
-            // cancelable : e.cancelable,
-            // detail : e.detail,
-            // width : e.width,
-            // height : e.height,
-            pointerId : e.pointerId,
-            isPrimary : e.isPrimary
-        };
-        log.push(data.event);
-        var remainder = log.length % 1000;
-        if (remainder === 0) {
-            var confirmed = confirm("Think you've tested it enough?\n\n    Yep: Click 'Ok' to save a file of your results.\n\n    Nope: Click 'Cancel' to continue testing the mouse/stylus inputs.")
-            if (confirmed === true) {
-                save_log_to_file();
-            }
-            return;
-        }
-        // Update DOM
-        var scale = e.pressure * 20;
-        pressureCircle.style.transform = "translate("+e.clientX+"px ,"+e.clientY+"px) skew("+e.tiltX+"deg, "+e.tiltY+"deg) scale("+scale+")";
-        output.innerHTML = JSON.stringify(data, null, 4);
-    };
-    if (!window.PointerEvent) alert("pointer events not detected");
-    output.innerHTML = JSON.stringify(data, null, 4);
+    <h1>pointer-events-debugger</h1>
+    <h2>Click and drag inside the square to detect and record pointer API data.</h2>
+    <p>Tip: Act like you're trying to draw on the page (however, no drawing will appear...boring, I know).</p>
+    <p>Tip: Try filtering events to only those you care about (i.e. <a href="#pointerleave,pointerenter">filter events</a>)</p>
+    <p><button id='btn_save'>Download Log</button> <button id='btn_clear'>Clear Log</button> (<span id='log_count'></span> actions)</p>
+    <div id="container" class="noselect">
+        <pre id="output_container"><code id="output"></code></pre>
+        <div id="input"></div>
+    </div>
+    <div id="pressureCircle"></div>
+    <a href="https://github.com/evitolins/pointer-events-debugger/"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/652c5b9acfaddf3a9c326fa6bde407b87f7be0f4/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6f72616e67655f6666373630302e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_orange_ff7600.png"></a>
 
-    // Logic to optionally listen to any of the events below by
-    // adding a comma-separated in the URL hash.
-    // 
-    //   e.g. .../index.html#pointerover,pointerenter,pointerdown
-    //   
-    var listenable_events = [
-        'pointerover',
-        'pointerenter',
-        'pointerdown',
-        'pointermove',
-        'pointerup',
-        'pointercancel',
-        'pointerout',
-        'pointerleave',
-        'gotpointercapture',
-        'lostpointercapture'
-    ];
-
-    var currently_listening = [];
-
-    var refresh_listeners = function (events) {
-        events = (events[0]) ? events : listenable_events;
-        currently_listening.forEach(function (value) {
-            body.removeEventListener(value, listener);
-            console.log('removeEventListener ' + value);
-        });
-        currently_listening = [];
-        events.forEach(function (value) {
-            if (listenable_events.indexOf(value) > -1) {
-                body.addEventListener(value, listener);
-                currently_listening.push(value);
-                console.log('addEventListener ' + value);
-            }
-        });
-    };
-
-    var listener_hashchange = function () {
-        var hashstring = window.location.hash.slice(1);
-        var events = [];
-        if (hashstring) {
-            events = hashstring.split(',');
-        }
-        refresh_listeners(events);
-    };
-
-    window.addEventListener('hashchange', listener_hashchange);
-    listener_hashchange();
-  
-    
-</script>
+    <script type="text/javascript" src="https://rawgit.com/lancedikson/bowser/master/src/bowser.js"></script>
+    <script type="text/javascript" src="https://rawgit.com/eligrey/FileSaver.js/master/FileSaver.min.js"></script>
+    <script src="./app.js"></script>
 </body>
 </html>
